@@ -1,6 +1,117 @@
 import pandas as pd
-import csv
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+#from matplotlib import rcParams
+#rcParams.update({'figure.autolayout': True})
+
+
+#Define functions
+def fillna_w_rand_subset(df,colname):
+	#Fill nans in a DataFrame column with a random selection of other elements
+	df = df.copy() #To remove the copy warning...
+	
+	#Record which row indices in the reference column are nan
+	i_nan = df[colname].isnull().values
+	n_nan = sum(i_nan)
+
+	i_nonnan = np.invert(i_nan)
+	nonnan_subseries = df.loc[i_nonnan,colname]
+	nonnan_val_distr_series = nonnan_subseries.value_counts()
+	
+	#Generate n_nan random samples of other data
+	rand_values = get_random_values_from_distr(nonnan_val_distr_series, n_nan)
+	
+	#Assign the random values to NaN location in the DataFrame
+	df.loc[i_nan,[colname]] = rand_values
+	return df
+
+def get_random_values_from_distr(distr_series, n_rands):
+	elements = distr_series.index
+	prob_values = distr_series.values/sum(distr_series.values)
+	return np.random.choice(elements,n_rands,p = prob_values)
+	
+def spy(X):
+	#Make a plot of all NaN values in a DataFrame X
+	X_values = X.values
+	n_y,n_x = np.shape(X_values)
+
+	nan_loc = np.where(X.isnull().values)
+	nan_loc_x = nan_loc[1]
+	nan_loc_y = nan_loc[0]
+
+	scatter_size = 20
+	plt.scatter(nan_loc_x,nan_loc_y,scatter_size)
+	plt.xlim(0, n_x-1)
+	plt.ylim(0, n_y-1)
+	plt.show()
+	return None
+
+
+#END Define functions
+
 
 training_data = pd.read_csv("train.csv")
 test_data = pd.read_csv("test.csv")
 #gender_submission = pd.read_csv('gender_submisson.csv')
+
+#Inspect the training data file
+#print(training_data.head())
+
+#Extract the column names
+column_names = list(training_data.columns)
+#print("Column names: \n",column_names)
+
+#Count the number of survivors
+n_survivors = training_data["Survived"].value_counts()
+#print("Survived (1), not survived (0): \n",n_survivors)
+#The sample is not very skewed
+
+#Select a subset of features to train on
+cols_x_keep = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
+cols_y_keep = ["Survived"]
+
+X = training_data[cols_x_keep]
+y = training_data[cols_y_keep]
+
+#Replace nan values in the embarked column with a random choice of 'C','Q','S'
+X = fillna_w_rand_subset(X,"Embarked") 
+
+#Replace the embarked column values with integers, do the same with sex
+embarked_dict = {'C':0,'Q':1,'S':2}
+X.replace({"Embarked":embarked_dict},inplace = True)
+sex_dict = {'male':0,'female':1}
+X.replace({'Sex':sex_dict},inplace = True)
+
+#Replace NaNs in the Age column with the average
+X = X.fillna(X.mean())
+
+
+##Explore the data
+##Plot where there are NaN elements
+#spy(X)
+
+##Check for linear correlations in the data
+#X.plot(x='Sex', y='Age', style='o')
+#X.plot(x='Age', y='Fare', style='o')
+#plt.show()
+#print(X.describe())
+
+##Check for correlations
+#X_corr = X.corr()
+#sns.heatmap(X_corr,annot=True,cmap = plt.cm.Reds)
+#plt.autoscale()
+#plt.show()
+
+##Plot the top elements
+#print(X.head(10))
+
+
+#Subset training and validation data
+
+#Run a machine learning algorithm
+
+
+
+	
