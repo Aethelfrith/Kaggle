@@ -74,10 +74,27 @@ def preprocess_titanic_data(input_data,exists_y = True):
 	
 	#Replace NaNs in the Age column with the average
 	X = X.fillna(X.mean())
+	
 	if (exists_y == True):
 		return X,y
 	else:
 		return X
+		
+def normalise_entire_dataframe(X,mode = 'minmax'):
+	if not isinstance(mode, str):
+		raise TypeError('mode is not a string')# check if lower can be applied
+	X = X.copy()
+
+	if mode.lower() == 'minmax':
+		X = (X - X.mean())/(X.max() - X.min())
+	elif mode.lower() == 'std':
+		X = (X - X.mean())/X.std()
+	else:
+		raise ValueError('mode invalid, choose one of minmax or std')
+		X = None
+	return X
+		
+	
 
 #END Define functions
 
@@ -104,6 +121,11 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data)
 
 #Clean the test data similarily
 X_test = preprocess_titanic_data(test_data,exists_y = False)
+
+#Try normalising the data
+normalise_mode = 'std'
+X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
+
 
 
 ##Explore the cleaned training data
