@@ -83,24 +83,23 @@ training_data = pd.read_csv("train.csv")
 test_data = pd.read_csv("test.csv")
 #gender_submission = pd.read_csv('gender_submisson.csv')
 
-#Inspect the training data file
+#Explore the uncleaned data
 #print(training_data.head())
 
 #Extract the column names
-column_names = list(training_data.columns)
+#column_names = list(training_data.columns)
 #print("Column names: \n",column_names)
 
 #Count the number of survivors
-n_survivors = training_data["Survived"].value_counts()
+#n_survivors = training_data["Survived"].value_counts()
 #print("Survived (1), not survived (0): \n",n_survivors)
 #The sample is not very skewed
 
+
+#Clean the training data
 X_train_val,y_train_val = preprocess_titanic_data(training_data)
 
-
-
-
-##Explore the data
+##Explore the cleaned training data
 ##Plot where there are NaN elements
 #spy(X_train_val)
 
