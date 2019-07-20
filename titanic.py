@@ -52,7 +52,29 @@ def spy(X):
 	plt.show()
 	return None
 
-def preprocess_titanic_data(X,columns_keep):
+def preprocess_titanic_data(input_data):
+	input_data = input_data.copy()
+
+	#Select a subset of features to train on
+	cols_x_keep = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
+	cols_y_keep = ["Survived"]
+	
+	X = input_data[cols_x_keep]
+	y = input_data[cols_y_keep]
+
+	#Replace nan values in the embarked column with a random choice of 'C','Q','S'
+	X = fillna_w_rand_subset(X,"Embarked") 
+
+	#Replace the embarked column values with integers, do the same with sex
+	embarked_dict = {'C':0,'Q':1,'S':2}
+	X.replace({"Embarked":embarked_dict},inplace = True)
+	sex_dict = {'male':0,'female':1}
+	X.replace({'Sex':sex_dict},inplace = True)
+	
+	#Replace NaNs in the Age column with the average
+	X = X.fillna(X.mean())
+
+	return X,y
 
 #END Define functions
 
@@ -73,44 +95,29 @@ n_survivors = training_data["Survived"].value_counts()
 #print("Survived (1), not survived (0): \n",n_survivors)
 #The sample is not very skewed
 
-#Select a subset of features to train on
-cols_x_keep = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
-cols_y_keep = ["Survived"]
+X_train_val,y_train_val = preprocess_titanic_data(training_data)
 
-X = training_data[cols_x_keep]
-y = training_data[cols_y_keep]
 
-#Replace nan values in the embarked column with a random choice of 'C','Q','S'
-X = fillna_w_rand_subset(X,"Embarked") 
-
-#Replace the embarked column values with integers, do the same with sex
-embarked_dict = {'C':0,'Q':1,'S':2}
-X.replace({"Embarked":embarked_dict},inplace = True)
-sex_dict = {'male':0,'female':1}
-X.replace({'Sex':sex_dict},inplace = True)
-
-#Replace NaNs in the Age column with the average
-X = X.fillna(X.mean())
 
 
 ##Explore the data
 ##Plot where there are NaN elements
-#spy(X)
+#spy(X_train_val)
 
 ##Check for linear correlations in the data
-#X.plot(x='Sex', y='Age', style='o')
-#X.plot(x='Age', y='Fare', style='o')
+#X_train_val.plot(x='Sex', y='Age', style='o')
+#X_train_val.plot(x='Age', y='Fare', style='o')
 #plt.show()
-#print(X.describe())
+#print(X_train_val.describe())
 
 ##Check for correlations
-#X_corr = X.corr()
+#X_corr = X_train_val.corr()
 #sns.heatmap(X_corr,annot=True,cmap = plt.cm.Reds)
 #plt.autoscale()
 #plt.show()
 
 ##Plot the top elements
-#print(X.head(10))
+#print(X_train_val.head(10))
 
 
 #Subset training and validation data
@@ -118,7 +125,7 @@ X = X.fillna(X.mean())
 #Run a machine learning algorithm
 random_seed = 1234
 n_max_leaf_nodes = 3
-X_train, X_val, y_train, y_val = train_test_split(X,y,random_state = random_seed)
+X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random_state = random_seed)
 estimator = DecisionTreeClassifier(max_leaf_nodes = n_max_leaf_nodes,random_state = random_seed)
 
 estimator.fit(X_train,y_train)
