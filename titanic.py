@@ -105,6 +105,7 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data)
 #Clean the test data similarily
 X_test = preprocess_titanic_data(test_data,exists_y = False)
 
+
 ##Explore the cleaned training data
 ##Plot where there are NaN elements
 #spy(X_train_val)
