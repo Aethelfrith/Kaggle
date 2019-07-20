@@ -160,8 +160,8 @@ X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random
 lr_solver = 'lbfgs'
 reg_param_C = 0.1
 is_fit_intercept = True
-class_weight_mode = 'balanced'
-#class_weight_mode = None
+#class_weight_mode = 'balanced'
+class_weight_mode = None
 regularisation_style = 'l2'
 estimator = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = class_weight_mode, C = reg_param_C, solver = lr_solver, multi_class = 'ovr',penalty = regularisation_style,random_state = random_seed)
 
