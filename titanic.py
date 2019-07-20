@@ -60,7 +60,8 @@ def preprocess_titanic_data(input_data,exists_y = True):
 	cols_y_keep = ["Survived"]
 	
 	X = input_data[cols_x_keep]
-	y = input_data[cols_y_keep]
+	if exists_y:
+		y = input_data[cols_y_keep]
 
 	#Replace nan values in the embarked column with a random choice of 'C','Q','S'
 	X = fillna_w_rand_subset(X,"Embarked") 
@@ -73,9 +74,9 @@ def preprocess_titanic_data(input_data,exists_y = True):
 	
 	#Replace NaNs in the Age column with the average
 	X = X.fillna(X.mean())
-	if exists_y
+	if (exists_y == True):
 		return X,y
-	else
+	else:
 		return X
 
 #END Define functions
