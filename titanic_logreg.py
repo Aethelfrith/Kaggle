@@ -4,11 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report as cr
-
-#from matplotlib import rcParams
-#rcParams.update({'figure.autolayout': True})
 
 
 #Define functions
@@ -89,6 +86,8 @@ def normalise_entire_dataframe(X,mode = 'minmax'):
 		X = (X - X.mean())/(X.max() - X.min())
 	elif mode.lower() == 'std':
 		X = (X - X.mean())/X.std()
+	elif mode.lower() == 'none':
+		X = X
 	else:
 		raise ValueError('mode invalid, choose one of minmax or std')
 		X = None
@@ -123,7 +122,8 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data)
 X_test = preprocess_titanic_data(test_data,exists_y = False)
 
 #Try normalising the data
-normalise_mode = 'std'
+#normalise_mode = 'std'
+normalise_mode = 'None'
 X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
 
 
@@ -150,16 +150,22 @@ X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
 
 #TRAINING
 #Set global random seed
-random_seed = 1234
+#random_seed = 1234
+random_seed = 2017
 
 #Subset training and validation data
 X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random_state = random_seed)
 
 #Run a machine learning algorithm
-n_max_leaf_nodes = 3
-estimator = DecisionTreeClassifier(max_leaf_nodes = n_max_leaf_nodes,random_state = random_seed)
+lr_solver = 'lbfgs'
+reg_param_C = 0.1
+is_fit_intercept = True
+class_weight_mode = 'balanced'
+#class_weight_mode = None
+regularisation_style = 'l2'
+estimator = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = class_weight_mode, C = reg_param_C, solver = lr_solver, multi_class = 'ovr',penalty = regularisation_style,random_state = random_seed)
 
-estimator.fit(X_train,y_train)
+estimator.fit(X_train,np.ravel(y_train))
 y_pred_train = estimator.predict(X_val)
 
 #VALIDATION
