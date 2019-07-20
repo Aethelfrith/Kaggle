@@ -52,7 +52,7 @@ def spy(X):
 	plt.show()
 	return None
 
-def preprocess_titanic_data(input_data):
+def preprocess_titanic_data(input_data,exists_y = True):
 	input_data = input_data.copy()
 
 	#Select a subset of features to train on
@@ -73,8 +73,10 @@ def preprocess_titanic_data(input_data):
 	
 	#Replace NaNs in the Age column with the average
 	X = X.fillna(X.mean())
-
-	return X,y
+	if exists_y
+		return X,y
+	else
+		return X
 
 #END Define functions
 
@@ -98,6 +100,9 @@ test_data = pd.read_csv("test.csv")
 
 #Clean the training data
 X_train_val,y_train_val = preprocess_titanic_data(training_data)
+
+#Clean the test data similarily
+X_test = preprocess_titanic_data(test_data,exists_y = False)
 
 ##Explore the cleaned training data
 ##Plot where there are NaN elements
@@ -131,14 +136,16 @@ n_max_leaf_nodes = 3
 estimator = DecisionTreeClassifier(max_leaf_nodes = n_max_leaf_nodes,random_state = random_seed)
 
 estimator.fit(X_train,y_train)
-y_pred = estimator.predict(X_val)
+y_pred_train = estimator.predict(X_val)
 
 #VALIDATION
 
 #Compare the predictions with the real values
 class_names = ['Diseased','Survived']
-class_rep = cr(y_val,y_pred,target_names = class_names)
-print(class_rep)
+class_rep_val = cr(y_val,y_pred_train,target_names = class_names)
+print(class_rep_val)
 
+#Generate predictions from the test set
+y_pred_test = estimator.predict(X_test)
 
 	
