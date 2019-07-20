@@ -119,16 +119,21 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data)
 #print(X_train_val.head(10))
 
 
+#TRAINING
+#Set global random seed
+random_seed = 1234
+
 #Subset training and validation data
+X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random_state = random_seed)
 
 #Run a machine learning algorithm
-random_seed = 1234
 n_max_leaf_nodes = 3
-X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random_state = random_seed)
 estimator = DecisionTreeClassifier(max_leaf_nodes = n_max_leaf_nodes,random_state = random_seed)
 
 estimator.fit(X_train,y_train)
 y_pred = estimator.predict(X_val)
+
+#VALIDATION
 
 #Compare the predictions with the real values
 class_names = ['Diseased','Survived']
