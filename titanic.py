@@ -3,6 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report as cr
+
 #from matplotlib import rcParams
 #rcParams.update({'figure.autolayout': True})
 
@@ -48,6 +52,7 @@ def spy(X):
 	plt.show()
 	return None
 
+def preprocess_titanic_data(X,columns_keep):
 
 #END Define functions
 
@@ -111,7 +116,18 @@ X = X.fillna(X.mean())
 #Subset training and validation data
 
 #Run a machine learning algorithm
+random_seed = 1234
+n_max_leaf_nodes = 3
+X_train, X_val, y_train, y_val = train_test_split(X,y,random_state = random_seed)
+estimator = DecisionTreeClassifier(max_leaf_nodes = n_max_leaf_nodes,random_state = random_seed)
 
+estimator.fit(X_train,y_train)
+y_pred = estimator.predict(X_val)
+
+#Compare the predictions with the real values
+class_names = ['Diseased','Survived']
+class_rep = cr(y_val,y_pred,target_names = class_names)
+print(class_rep)
 
 
 	
