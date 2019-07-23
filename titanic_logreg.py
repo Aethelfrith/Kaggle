@@ -115,13 +115,13 @@ test_data = pd.read_csv("test.csv")
 #The sample is not very skewed
 
 #Select a set of features to train on
-cols_x_keep = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
+train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
 
 #Clean the training data
-X_train_val,y_train_val = preprocess_titanic_data(training_data, features = cols_x_keep)
+X_train_val,y_train_val = preprocess_titanic_data(training_data, features = train_features)
 
 #Clean the test data similarily
-X_test = preprocess_titanic_data(test_data,features = cols_x_keep,exists_y = False)
+X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Try normalising the data
 #normalise_mode = 'std'
@@ -154,21 +154,35 @@ X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
 #Set global random seed
 #random_seed = 1234
 random_seed = 2017
+#random_seed = 3972153975
 
 #Subset training and validation data
 X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random_state = random_seed)
 
 #Run a machine learning algorithm
 lr_solver = 'lbfgs'
+#lr_solver = 'liblinear'
 reg_param_C = 0.1
 is_fit_intercept = True
 #class_weight_mode = 'balanced'
 class_weight_mode = None
 regularisation_style = 'l2'
-estimator = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = class_weight_mode, C = reg_param_C, solver = lr_solver, multi_class = 'ovr',penalty = regularisation_style,random_state = random_seed)
+#regularisation_style = 'l1'
+max_iter = 200
+estimator = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = class_weight_mode, C = reg_param_C, solver = lr_solver, multi_class = 'ovr',penalty = regularisation_style,random_state = random_seed, max_iter = max_iter)
 
 estimator.fit(X_train,np.ravel(y_train))
 y_pred_train = estimator.predict(X_val)
+
+#Inspect the importance of features
+#Make a DataFrame of the feature importances and column names
+#print(train_features)
+#print(estimator.feature_importances_)
+importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
+print(importance_df)
+
+bias_term = estimator.intercept_
+print("Intercept: \n",bias_term)
 
 #VALIDATION
 
