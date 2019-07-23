@@ -52,11 +52,11 @@ def spy(X):
 	plt.show()
 	return None
 
-def preprocess_titanic_data(input_data,exists_y = True):
+def preprocess_titanic_data(input_data,features,exists_y = True):
 	input_data = input_data.copy()
 
-	#Select a subset of features to train on
-	cols_x_keep = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
+	#Receive a subset of features to train on
+	cols_x_keep = features
 	cols_y_keep = ["Survived"]
 	
 	X = input_data[cols_x_keep]
@@ -107,7 +107,7 @@ test_data = pd.read_csv("test.csv")
 #print(training_data.head())
 
 #Extract the column names
-#column_names = list(training_data.columns)
+column_names = list(training_data.columns)
 #print("Column names: \n",column_names)
 
 #Count the number of survivors
@@ -115,16 +115,19 @@ test_data = pd.read_csv("test.csv")
 #print("Survived (1), not survived (0): \n",n_survivors)
 #The sample is not very skewed
 
+#Select features to train on
+train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
 
 #Clean the training data
-X_train_val,y_train_val = preprocess_titanic_data(training_data)
+X_train_val,y_train_val = preprocess_titanic_data(training_data,features = train_features)
 
 #Clean the test data similarily
-X_test = preprocess_titanic_data(test_data,exists_y = False)
+X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Try normalising the data
 normalise_mode = 'std'
 X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
+#X_test = normalise_entire_dataframe(X_test, mode = normalise_mode)
 
 
 
@@ -161,6 +164,13 @@ estimator = DecisionTreeClassifier(max_leaf_nodes = n_max_leaf_nodes,random_stat
 
 estimator.fit(X_train,y_train)
 y_pred_train = estimator.predict(X_val)
+
+#Inspect the importance of features
+#Make a series of the feature importances and column names
+#print(train_features)
+#print(estimator.feature_importances_)
+importance_df = pd.DataFrame([estimator.feature_importances_,], columns = train_features)
+print(importance_df)
 
 #VALIDATION
 
