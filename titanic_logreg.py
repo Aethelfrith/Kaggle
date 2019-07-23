@@ -49,11 +49,11 @@ def spy(X):
 	plt.show()
 	return None
 
-def preprocess_titanic_data(input_data,exists_y = True):
+def preprocess_titanic_data(input_data,features,exists_y = True):
 	input_data = input_data.copy()
+	cols_x_keep = features
 
 	#Select a subset of features to train on
-	cols_x_keep = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
 	cols_y_keep = ["Survived"]
 	
 	X = input_data[cols_x_keep]
@@ -114,12 +114,14 @@ test_data = pd.read_csv("test.csv")
 #print("Survived (1), not survived (0): \n",n_survivors)
 #The sample is not very skewed
 
+#Select a set of features to train on
+cols_x_keep = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
 
 #Clean the training data
-X_train_val,y_train_val = preprocess_titanic_data(training_data)
+X_train_val,y_train_val = preprocess_titanic_data(training_data, features = cols_x_keep)
 
 #Clean the test data similarily
-X_test = preprocess_titanic_data(test_data,exists_y = False)
+X_test = preprocess_titanic_data(test_data,features = cols_x_keep,exists_y = False)
 
 #Try normalising the data
 #normalise_mode = 'std'
