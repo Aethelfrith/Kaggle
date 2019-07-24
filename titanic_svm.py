@@ -239,7 +239,7 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data, features = trai
 X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Add polynomial features
-poly_degree = 1
+poly_degree = 2
 include_bias = False
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
@@ -289,15 +289,25 @@ X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random
 kernel_fun = 'linear'
 #kernel_fun = 'rbf'
 
-#Best for rbs kernel
+#Best for rbs kernel, no polynomial features
 #gamma = 0.01
 #reg_param_C = 10
 
-#Best for linear kernel
+#Best for radial kernel, polynomial features
+#gamma = 0.01
+#reg_param_C = 1
+
+#Best for linear kernel, no polynomial features
+#gamma = 1
+#reg_param_C = 0.1
+
+#Best for linear kernel, polynomial features
 gamma = 1
 reg_param_C = 0.1
 
-max_iter = 10000
+
+
+max_iter = 20000
 decision_function_shape = 'ovr'
 estimator = SVC(C = reg_param_C, gamma = gamma, kernel = kernel_fun, decision_function_shape = decision_function_shape, random_state = random_seed, max_iter = max_iter)
 
@@ -307,11 +317,9 @@ y_pred_train_self = estimator.predict(X_train)
 
 #Inspect the importance of features
 #Make a DataFrame of the feature importances and column names
-#print(train_features)
-#print(estimator.feature_importances_)
-#importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
-#print("Importance of features: ")
-#print(importance_df)
+importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
+print("Importance of features: ")
+print(importance_df)
 
 #bias_term = estimator.intercept_
 #print("Intercept: \n",bias_term)
@@ -339,8 +347,8 @@ training_curve_title = 'Support vector classifier'
 train_val_split_folds = 5
 train_sizes = np.linspace(0.04,1.0,20)
 
-plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
-plt.show()
+#plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
+#plt.show()
 
 #Plot a cross-validation curve
 CV_curve_title = 'Support vector classifier'
