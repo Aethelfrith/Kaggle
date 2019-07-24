@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 from sklearn.metrics import classification_report as cr
 from sklearn import preprocessing as pp
 from sklearn.model_selection import learning_curve
@@ -286,19 +286,20 @@ random_seed = 1234
 X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random_state = random_seed)
 
 #Run a machine learning algorithm
-lr_solver = 'lbfgs'
-#lr_solver = 'liblinear'
-reg_param_C = 0.1
-is_fit_intercept = True
-#class_weight_mode = 'balanced'
-class_weight_mode = None
-regularisation_style = 'l2'
-#regularisation_style = 'l1'
-#max_iter = 200
-max_iter = 300
-estimator = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = class_weight_mode, C = reg_param_C, solver = lr_solver, multi_class = 'ovr',penalty = regularisation_style,random_state = random_seed, max_iter = max_iter)
+kernel_fun = 'linear'
+#kernel_fun = 'rbf'
 
-estimator_no_C = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = class_weight_mode, solver = lr_solver, multi_class = 'ovr',penalty = regularisation_style,random_state = random_seed, max_iter = max_iter)
+#Best for rbs kernel
+#gamma = 0.01
+#reg_param_C = 10
+
+#Best for linear kernel
+gamma = 1
+reg_param_C = 0.1
+
+max_iter = 10000
+decision_function_shape = 'ovr'
+estimator = SVC(C = reg_param_C, gamma = gamma, kernel = kernel_fun, decision_function_shape = decision_function_shape, random_state = random_seed, max_iter = max_iter)
 
 estimator.fit(X_train,np.ravel(y_train))
 y_pred_train = estimator.predict(X_val)
@@ -308,12 +309,12 @@ y_pred_train_self = estimator.predict(X_train)
 #Make a DataFrame of the feature importances and column names
 #print(train_features)
 #print(estimator.feature_importances_)
-importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
-print("Importance of features: ")
-print(importance_df)
+#importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
+#print("Importance of features: ")
+#print(importance_df)
 
-bias_term = estimator.intercept_
-print("Intercept: \n",bias_term)
+#bias_term = estimator.intercept_
+#print("Intercept: \n",bias_term)
 
 #Plot the importances in a bar plot
 #importance_df.plot(kind='bar',figsize = (10,6))
@@ -334,23 +335,21 @@ print("Intercept: \n",bias_term)
 
 
 #Plot a training curve
-training_curve_title = 'Logistic regression classifier'
-train_val_split_fsolds = 5
+training_curve_title = 'Support vector classifier'
+train_val_split_folds = 5
 train_sizes = np.linspace(0.04,1.0,20)
 
-#plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
-#plt.show()
+plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
+plt.show()
 
 #Plot a cross-validation curve
-CV_curve_title = 'Logistic regression classifier'
+CV_curve_title = 'Support vector classifier'
 CV_param_name = 'C'
+#CV_param_name = 'gamma'
 CV_pararam_range = np.array([0.001,0.01,0.1,1,10,100])
 
-#train_score, validation_scores = validation_curve(estimator_no_C, X_train_val, np.ravel(y_train_val), "C", [0.1,1],cv=5)
-
-
-plot_validation_curve(estimator_no_C, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
-plt.show()
+#plot_validation_curve(estimator, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
+#plt.show()
 
 #VALIDATION
 #Display the error metrics on the training data
