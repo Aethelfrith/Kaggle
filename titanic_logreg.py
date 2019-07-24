@@ -216,7 +216,7 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data, features = trai
 X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Add polynomial features
-poly_degree = 2
+poly_degree = 1
 include_bias = False
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
@@ -284,6 +284,7 @@ y_pred_train_self = estimator.predict(X_train)
 #print(train_features)
 #print(estimator.feature_importances_)
 importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
+print('Importance of features:")
 print(importance_df)
 
 bias_term = estimator.intercept_
@@ -307,18 +308,15 @@ print("Intercept: \n",bias_term)
 #plt.show()
 
 
-#Generate data for a training curve
-#train_sizes = [0.5,0.7,0.9]
+#Plot a training curve
 training_curve_title = 'Logistic regression classifier'
 train_val_split_folds = 5
 train_sizes = np.linspace(0.04,1.0,20)
-#train_size, train_scores, valid_scores = learning_curve(estimator,X_train_val, np.ravel(y_train_val), train_sizes = train_sizes, cv = train_val_split_folds)
 
 plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
 plt.show()
 
-#print(train_size)
-#print(train_scores)
+
 
 
 #VALIDATION
