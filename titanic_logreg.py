@@ -134,7 +134,7 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data, features = trai
 X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Add polynomial features
-poly_degree = 2
+poly_degree = 1
 include_bias = False
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
@@ -194,6 +194,7 @@ estimator = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = 
 
 estimator.fit(X_train,np.ravel(y_train))
 y_pred_train = estimator.predict(X_val)
+y_pred_train_self = estimator.predict(X_train)
 
 #Inspect the importance of features
 #Make a DataFrame of the feature importances and column names
@@ -210,12 +211,18 @@ importance_df.plot(kind='bar',figsize = (10,6))
 plt.legend(ncol=3)
 plt.show()
 
-
 #VALIDATION
+#Display the error metrics on the training data
+class_names = ['Diseased','Survived']
+class_rep_train = cr(y_train,y_pred_train_self,target_names = class_names)
+print("Performance on training data:")
+print(class_rep_train)
+
+
 
 #Compare the predictions with the real values
-class_names = ['Diseased','Survived']
 class_rep_val = cr(y_val,y_pred_train,target_names = class_names)
+print("Performance on validation data:")
 print(class_rep_val)
 
 #Generate predictions from the test set
