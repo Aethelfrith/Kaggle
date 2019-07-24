@@ -286,21 +286,14 @@ X_train_val = extract_and_add_titles(X_train_val, name_series)
 columns_numerise = ['Sex','Embarked','Title']
 X_train_val = replace_string_with_numeric(X_train_val, columns_numerise)
 
-#Clean the test data similarily
-#Manually add features
-X_test = preprocess_titanic_data(test_data, features = train_features, exists_y = False)
-X_test, train_features_test = combine_features_titanic(X_test,train_features)
-X_test = extract_and_add_titles(X_test, name_series)
-X_test = replace_string_with_numeric(X_test, columns_numerise)
+
 
 #Add polynomial features
 poly_degree = 1
 include_bias = False
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
-train_features = X_train_val.columns.tolist() #Not sure why this is needed
-
-X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
+train_features_train = X_train_val.columns.tolist() #Not sure why this is needed
 
 #Try normalising the data
 normalise_mode = 'std'
@@ -308,6 +301,14 @@ normalise_mode = 'std'
 X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
 
 
+#Perform the same operations on test data
+X_test = preprocess_titanic_data(test_data, features = train_features, exists_y = False)
+X_test, train_features_test = combine_features_titanic(X_test,train_features)
+X_test = extract_and_add_titles(X_test, name_series)
+
+X_test = replace_string_with_numeric(X_test, columns_numerise)
+X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
+X_test = normalise_entire_dataframe(X_test, mode = normalise_mode)
 
 
 ##Explore the cleaned training data
@@ -350,7 +351,7 @@ y_pred_train_self = estimator.predict(X_train)
 #Inspect the importance of features
 #Make a DataFrame of the feature importances and column names
 feature_importances = np.array([estimator.feature_importances_,])#Need to convert to np.array
-importance_df = pd.DataFrame(feature_importances, columns = [train_features])
+importance_df = pd.DataFrame(feature_importances, columns = [train_features_train])
 print("Importance of features: ")
 print(importance_df)
 
