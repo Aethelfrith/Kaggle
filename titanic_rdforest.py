@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report as cr
 from sklearn import preprocessing as pp
 from sklearn.model_selection import learning_curve
@@ -100,9 +100,14 @@ def polynomialize_df(df, poly_degree, include_bias, interaction_only = False):
 	df = df.copy()
 	poly_feature_factory = pp.PolynomialFeatures(poly_degree,include_bias = include_bias, interaction_only = interaction_only)
 	np_array_poly = poly_feature_factory.fit_transform(df)
+#	print(np_array_poly)
 	polyfeature_names = poly_feature_factory.get_feature_names(df.columns)
+#	print("Is multiindex: ",isinstance(polyfeature_names, pd.MultiIndex))
+#	print(type(polyfeature_names))
 	#Make a new dataframe
-	df = pd.DataFrame(np_array_poly, columns = [polyfeature_names,])
+#	print(np_array_poly.shape)
+	df = pd.DataFrame(np_array_poly, columns = polyfeature_names)
+#	print(df)
 	return df
 
 def plot_learning_curve(estimator, X, y, title = None, ylim=None, cv=None,
@@ -239,11 +244,11 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data, features = trai
 X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Add polynomial features
-poly_degree = 2
+poly_degree = 1
 include_bias = False
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
-train_features = X_train_val.columns
+train_features = X_train_val.columns.tolist() #Not sure why this is needed
 
 X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
 
@@ -286,30 +291,8 @@ random_seed = 1234
 X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random_state = random_seed)
 
 #Run a machine learning algorithm
-kernel_fun = 'linear'
-#kernel_fun = 'rbf'
-
-#Best for rbs kernel, no polynomial features
-#gamma = 0.01
-#reg_param_C = 10
-
-#Best for radial kernel, polynomial features
-#gamma = 0.01
-#reg_param_C = 1
-
-#Best for linear kernel, no polynomial features
-#gamma = 1
-#reg_param_C = 0.1
-
-#Best for linear kernel, polynomial features
-gamma = 1
-reg_param_C = 0.1
-
-
-
-max_iter = 20000
-decision_function_shape = 'ovr'
-estimator = SVC(C = reg_param_C, gamma = gamma, kernel = kernel_fun, decision_function_shape = decision_function_shape, random_state = random_seed, max_iter = max_iter)
+n_estimators = 100
+estimator = RandomForestClassifier(n_estimators = n_estimators, random_state = random_seed)
 
 estimator.fit(X_train,np.ravel(y_train))
 y_pred_train = estimator.predict(X_val)
@@ -317,7 +300,8 @@ y_pred_train_self = estimator.predict(X_train)
 
 #Inspect the importance of features
 #Make a DataFrame of the feature importances and column names
-importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
+feature_importances = np.array([estimator.feature_importances_,])#Need to convert to np.array
+importance_df = pd.DataFrame(feature_importances, columns = [train_features])
 print("Importance of features: ")
 print(importance_df)
 
@@ -343,7 +327,7 @@ print(importance_df)
 
 
 #Plot a training curve
-training_curve_title = 'Support vector classifier'
+training_curve_title = 'RandomForestClassifier'
 train_val_split_folds = 5
 train_sizes = np.linspace(0.04,1.0,20)
 
@@ -351,12 +335,15 @@ train_sizes = np.linspace(0.04,1.0,20)
 #plt.show()
 
 #Plot a cross-validation curve
-CV_curve_title = 'Support vector classifier'
-CV_param_name = 'C'
-#CV_param_name = 'gamma'
-CV_pararam_range = np.array([0.001,0.01,0.1,1,10,100])
+CV_curve_title = 'RandomForestClassifier'
 
-#plot_validation_curve(estimator, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
+#CV_param_name = 'n_estimators'
+#CV_pararam_range = np.array([2, 10, 30, 50, 80, 100])
+
+CV_param_name = 'max_leaf_nodes'
+CV_param_range = np.array(np.linspace(2,50,5).astype(int))
+
+#plot_validation_curve(estimator, X_train_val, np.ravel(y_train_val), CV_param_name, CV_param_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
 #plt.show()
 
 #VALIDATION
