@@ -416,4 +416,4 @@ y_pred_test = estimator.predict(X_test)
 #Write the predictions to file
 temp = test_data.loc[:,['PassengerId']]
 temp['Survived'] = y_pred_test
-temp.to_csv("./submission.csv")
+temp.to_csv("./submission.csv",header=True,index=False)
