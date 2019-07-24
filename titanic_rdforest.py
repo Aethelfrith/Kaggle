@@ -66,12 +66,6 @@ def preprocess_titanic_data(input_data,features,exists_y = True):
 	#Replace nan values in the embarked column with a random choice of 'C','Q','S'
 	X = fillna_w_rand_subset(X,"Embarked") 
 
-	#Replace the embarked column values with integers, do the same with sex
-	embarked_dict = {'C':0,'Q':1,'S':2}
-	X.replace({"Embarked":embarked_dict},inplace = True)
-	sex_dict = {'male':0,'female':1}
-	X.replace({'Sex':sex_dict},inplace = True)
-	
 	#Replace NaNs in the Age column with the average
 	X = X.fillna(X.mean())
 	
@@ -79,6 +73,53 @@ def preprocess_titanic_data(input_data,features,exists_y = True):
 		return X,y
 	else:
 		return X
+
+def replace_string_with_numeric(X,columns_numerise):
+	X = X.copy()
+	#Replace selected column values with integers
+	
+	#Extract the unique values for each column
+	for col in columns_numerise:
+		unique_elements = X.loc[:,col].unique()
+		n_unique_elements = len(unique_elements)
+		index_list = list(range(0,n_unique_elements))
+		dict_components = zip(unique_elements,index_list)
+		curr_dict = {key:value for (key,value) in dict_components}
+		X.replace({col:curr_dict},inplace = True)	
+#	embarked_dict = {'C':0,'Q':1,'S':2}
+#	X.replace({"Embarked":embarked_dict},inplace = True)
+#	sex_dict = {'male':0,'female':1}
+#	X.replace({'Sex':sex_dict},inplace = True)
+	return X
+	
+
+def combine_features_titanic(X,train_feature_names=None):
+	X = X.copy()
+	X['FamSize'] = X['Parch'] + X['SibSp'] + 1
+	X['isAlone'] = 1
+	X.loc[X['FamSize']>1,'isAlone'] = 0
+	if not train_feature_names == None:
+		train_feature_names = train_feature_names.copy()
+		train_feature_names.append('FamSize')
+		train_feature_names.append('isAlone')
+		return X, train_feature_names
+	else:
+		return X
+		
+def extract_and_add_titles(X,name_series,rare_name_thresh = 10):
+	X = X.copy()
+#	name_series = training_data['Name']
+	given_names = name_series.str.split(', ',expand=True)[1]
+	titles = given_names.str.split(".", expand=True)[0]
+#	print("Unique titles:", titles.unique())
+	name_counts = titles.value_counts()
+	rare_names = name_counts.loc[name_counts.values < rare_name_thresh]
+#	print(titles.values)
+	rare_name_indices = [True if name in rare_names else False for name in titles.values]
+	titles.loc[rare_name_indices] = 'Misc'
+	X['Title'] = titles
+#	print(X_train_val)
+	return X
 		
 def normalise_entire_dataframe(X,mode = 'minmax'):
 	if not isinstance(mode, str):
@@ -240,17 +281,30 @@ train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
 #Clean the training data
 X_train_val,y_train_val = preprocess_titanic_data(training_data, features = train_features)
 
+#Manually add features
+X_train_val, train_features_train = combine_features_titanic(X_train_val,train_features)
+
+#Extract titles from names
+name_series = training_data['Name']
+X_train_val = extract_and_add_titles(X_train_val, name_series)
+
+#Convert categorical data to numeric data
+columns_numerise = ['Sex','Embarked','Title']
+X_train_val = replace_string_with_numeric(X_train_val, columns_numerise)
+
 #Clean the test data similarily
-X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
+#Manually add features
+X_test = preprocess_titanic_data(test_data, features = train_features, exists_y = False)
+X_test, train_features_test = combine_features_titanic(X_test,train_features)
 
 #Add polynomial features
-poly_degree = 2
+poly_degree = 1
 include_bias = False
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
 train_features = X_train_val.columns.tolist() #Not sure why this is needed
 
-X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
+#X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
 
 
 #Try normalising the data
