@@ -244,7 +244,7 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data, features = trai
 X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Add polynomial features
-poly_degree = 1
+poly_degree = 2
 include_bias = False
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
