@@ -66,7 +66,7 @@ def preprocess_titanic_data(input_data,features,exists_y = True):
 	#Replace nan values in the embarked column with a random choice of 'C','Q','S'
 	X = fillna_w_rand_subset(X,"Embarked") 
 
-	#Replace NaNs in the Age column with the average
+	#Replace NaNs in the Age (and fare) column(s) with the average
 	X = X.fillna(X.mean())
 	
 	if (exists_y == True):
@@ -411,6 +411,9 @@ print("Performance on validation data:")
 print(class_rep_val)
 
 #Generate predictions from the test set
-#y_pred_test = estimator.predict(X_test)
+y_pred_test = estimator.predict(X_test)
 
-	
+#Write the predictions to file
+temp = test_data.loc[:,['PassengerId']]
+temp['Survived'] = y_pred_test
+temp.to_csv("./submission.csv")
