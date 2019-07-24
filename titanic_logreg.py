@@ -6,6 +6,7 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report as cr
+from sklearn import preprocessing as pp
 
 
 #Define functions
@@ -92,7 +93,16 @@ def normalise_entire_dataframe(X,mode = 'minmax'):
 		raise ValueError('mode invalid, choose one of minmax or std')
 		X = None
 	return X
-		
+
+def polynomialize_df(df, poly_degree, include_bias, interaction_only = False):
+	df = df.copy()
+	poly_feature_factory = pp.PolynomialFeatures(poly_degree,include_bias = include_bias, interaction_only = interaction_only)
+	np_array_poly = poly_feature_factory.fit_transform(df)
+	polyfeature_names = poly_feature_factory.get_feature_names(df.columns)
+	#Make a new dataframe
+	df = pd.DataFrame(np_array_poly, columns = [polyfeature_names,])
+	return df
+	
 	
 
 #END Define functions
@@ -123,10 +133,21 @@ X_train_val,y_train_val = preprocess_titanic_data(training_data, features = trai
 #Clean the test data similarily
 X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
+#Add polynomial features
+poly_degree = 2
+include_bias = False
+interaction_only = False
+X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
+train_features = X_train_val.columns
+
+X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
+
+
 #Try normalising the data
 #normalise_mode = 'std'
 normalise_mode = 'None'
 X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
+
 
 
 
