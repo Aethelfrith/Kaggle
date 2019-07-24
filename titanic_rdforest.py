@@ -86,10 +86,7 @@ def replace_string_with_numeric(X,columns_numerise):
 		dict_components = zip(unique_elements,index_list)
 		curr_dict = {key:value for (key,value) in dict_components}
 		X.replace({col:curr_dict},inplace = True)	
-#	embarked_dict = {'C':0,'Q':1,'S':2}
-#	X.replace({"Embarked":embarked_dict},inplace = True)
-#	sex_dict = {'male':0,'female':1}
-#	X.replace({'Sex':sex_dict},inplace = True)
+		
 	return X
 	
 
@@ -108,17 +105,17 @@ def combine_features_titanic(X,train_feature_names=None):
 		
 def extract_and_add_titles(X,name_series,rare_name_thresh = 10):
 	X = X.copy()
-#	name_series = training_data['Name']
+
 	given_names = name_series.str.split(', ',expand=True)[1]
 	titles = given_names.str.split(".", expand=True)[0]
-#	print("Unique titles:", titles.unique())
+
 	name_counts = titles.value_counts()
 	rare_names = name_counts.loc[name_counts.values < rare_name_thresh]
-#	print(titles.values)
+
 	rare_name_indices = [True if name in rare_names else False for name in titles.values]
 	titles.loc[rare_name_indices] = 'Misc'
 	X['Title'] = titles
-#	print(X_train_val)
+
 	return X
 		
 def normalise_entire_dataframe(X,mode = 'minmax'):
@@ -141,14 +138,11 @@ def polynomialize_df(df, poly_degree, include_bias, interaction_only = False):
 	df = df.copy()
 	poly_feature_factory = pp.PolynomialFeatures(poly_degree,include_bias = include_bias, interaction_only = interaction_only)
 	np_array_poly = poly_feature_factory.fit_transform(df)
-#	print(np_array_poly)
+
 	polyfeature_names = poly_feature_factory.get_feature_names(df.columns)
-#	print("Is multiindex: ",isinstance(polyfeature_names, pd.MultiIndex))
-#	print(type(polyfeature_names))
-	#Make a new dataframe
-#	print(np_array_poly.shape)
+
 	df = pd.DataFrame(np_array_poly, columns = polyfeature_names)
-#	print(df)
+
 	return df
 
 def plot_learning_curve(estimator, X, y, title = None, ylim=None, cv=None,
@@ -279,7 +273,7 @@ test_data = pd.read_csv("test.csv")
 train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
 
 #Clean the training data
-X_train_val,y_train_val = preprocess_titanic_data(training_data, features = train_features)
+X_train_val, y_train_val = preprocess_titanic_data(training_data, features = train_features)
 
 #Manually add features
 X_train_val, train_features_train = combine_features_titanic(X_train_val,train_features)
@@ -296,6 +290,8 @@ X_train_val = replace_string_with_numeric(X_train_val, columns_numerise)
 #Manually add features
 X_test = preprocess_titanic_data(test_data, features = train_features, exists_y = False)
 X_test, train_features_test = combine_features_titanic(X_test,train_features)
+X_test = extract_and_add_titles(X_test, name_series)
+X_test = replace_string_with_numeric(X_test, columns_numerise)
 
 #Add polynomial features
 poly_degree = 1
@@ -304,12 +300,11 @@ interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
 train_features = X_train_val.columns.tolist() #Not sure why this is needed
 
-#X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
-
+X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
 
 #Try normalising the data
-#normalise_mode = 'std'
-normalise_mode = 'None'
+normalise_mode = 'std'
+#normalise_mode = 'None'
 X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
 
 
