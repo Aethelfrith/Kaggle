@@ -8,6 +8,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report as cr
 from sklearn import preprocessing as pp
 from sklearn.model_selection import learning_curve
+from sklearn.model_selection import validation_curve
 
 
 #Define functions
@@ -158,6 +159,8 @@ def plot_learning_curve(estimator, X, y, title = None, ylim=None, cv=None,
         Note that for classification the number of samples usually have to
         be big enough to contain at least one sample from each class.
         (default: np.linspace(0.1, 1.0, 5))
+        
+    Note: From https://scikit-learn.org/stable/auto_examples/model_selection/plot_learning_curve.html#sphx-glr-auto-examples-model-selection-plot-learning-curve-py
     """
     plt.figure()
     plt.title(title)
@@ -185,7 +188,27 @@ def plot_learning_curve(estimator, X, y, title = None, ylim=None, cv=None,
 
     plt.legend(loc="best")
     return plt
-	
+
+def plot_validation_curve(estimator, X, y, param_name, param_range, title=None, 		xlabel = 'Parameter', ylabel = 'Score', ylim = None, cv = 5):
+	plt.figure()
+	plt.title(title)
+	if ylim is not None:
+		plt.ylim(*ylim)
+	#NOTE: Strange that cv has to be hardcoded....
+	train_scores, validation_scores = validation_curve(estimator, X, y, param_name, param_range, cv = 5)
+	train_scores_mean = np.mean(train_scores,axis=1)
+	train_scores_std = np.std(train_scores,axis=1)
+	validation_scores_mean = np.mean(validation_scores,axis=1)
+	validation_scores_std = np.std(validation_scores,axis=1)
+	plt.xlabel(xlabel)
+	plt.ylabel(ylabel)
+	line_width = 2
+	plt.semilogx(param_range,train_scores_mean,label = 'Training score', color='darkorange',lw = line_width)
+	plt.fill_between(param_range, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha = 0.1, color='darkorange',lw = line_width)
+	plt.semilogx(param_range,validation_scores_mean,label = 'CV score', color='navy',lw = line_width)
+	plt.fill_between(param_range, validation_scores_mean - validation_scores_std, validation_scores_mean + validation_scores_std, alpha = 0.1, color='navy',lw = line_width)
+	plt.legend(loc='best')
+	return plt
 
 #END Define functions
 
@@ -275,6 +298,8 @@ regularisation_style = 'l2'
 max_iter = 300
 estimator = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = class_weight_mode, C = reg_param_C, solver = lr_solver, multi_class = 'ovr',penalty = regularisation_style,random_state = random_seed, max_iter = max_iter)
 
+estimator_no_C = LogisticRegression(fit_intercept = is_fit_intercept, class_weight = class_weight_mode, solver = lr_solver, multi_class = 'ovr',penalty = regularisation_style,random_state = random_seed, max_iter = max_iter)
+
 estimator.fit(X_train,np.ravel(y_train))
 y_pred_train = estimator.predict(X_val)
 y_pred_train_self = estimator.predict(X_train)
@@ -284,7 +309,7 @@ y_pred_train_self = estimator.predict(X_train)
 #print(train_features)
 #print(estimator.feature_importances_)
 importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
-print('Importance of features:")
+print("Importance of features: ")
 print(importance_df)
 
 bias_term = estimator.intercept_
@@ -310,14 +335,22 @@ print("Intercept: \n",bias_term)
 
 #Plot a training curve
 training_curve_title = 'Logistic regression classifier'
-train_val_split_folds = 5
+train_val_split_fsolds = 5
 train_sizes = np.linspace(0.04,1.0,20)
 
-plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
+#plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
+#plt.show()
+
+#Plot a cross-validation curve
+CV_curve_title = 'Logistic regression classifier'
+CV_param_name = 'C'
+CV_pararam_range = np.array([0.001,0.01,0.1,1,10,100])
+
+#train_score, validation_scores = validation_curve(estimator_no_C, X_train_val, np.ravel(y_train_val), "C", [0.1,1],cv=5)
+
+
+plot_validation_curve(estimator_no_C, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
 plt.show()
-
-
-
 
 #VALIDATION
 #Display the error metrics on the training data
