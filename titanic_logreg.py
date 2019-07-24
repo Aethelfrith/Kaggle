@@ -205,6 +205,12 @@ print(importance_df)
 bias_term = estimator.intercept_
 print("Intercept: \n",bias_term)
 
+#Plot the importances in a bar plot
+importance_df.plot(kind='bar',figsize = (10,6))
+plt.legend(ncol=3)
+plt.show()
+
+
 #VALIDATION
 
 #Compare the predictions with the real values
@@ -213,6 +219,6 @@ class_rep_val = cr(y_val,y_pred_train,target_names = class_names)
 print(class_rep_val)
 
 #Generate predictions from the test set
-y_pred_test = estimator.predict(X_test)
+#y_pred_test = estimator.predict(X_test)
 
 	
