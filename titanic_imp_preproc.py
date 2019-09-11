@@ -10,6 +10,12 @@ from sklearn import preprocessing as pp
 from sklearn.model_selection import learning_curve
 from sklearn.model_selection import validation_curve
 
+####################################
+#Classify which passengers of the Titanic survive and which ones die.
+#Here, a support vector machine is used for classification.
+#This script focusses on improving the preprocessing step of data.
+#Part of the code is inspired by some other Kaggle users.
+
 
 #Define functions
 def fillna_w_rand_subset(df,colname):
