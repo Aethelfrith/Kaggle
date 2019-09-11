@@ -88,6 +88,32 @@ def preprocess_titanic_data(input_data,features,exists_y = True):
 		return X,y
 	else:
 		return X
+		
+def fill_with_mode(X,features):
+	X = X.copy()
+	for feature in features:
+		X[feature].fillna(X[feature].mode()[0],inplace=True)
+	return X
+	
+def fill_with_mean(X,features):
+	X = X.copy()
+	for feature in features:
+		X[feature].fillna(X[feature].mean(),inplace=True)
+	return X
+	
+def fill_with_median(X,features):
+	X = X.copy()
+	for feature in features:
+		X[feature].fillna(X[feature].median(),inplace=True)
+	return X
+
+def split_target_and_rest(X,target_feature_name):
+	X = X.copy()
+	
+	target_feature = X[target_feature_name]
+	remaining_features = X.drop("Survived",axis=1)
+	
+	return remaining_features,target_feature
 
 def onehot(X,features):
 	X = X.copy()
@@ -230,31 +256,42 @@ def plot_validation_curve(estimator, X, y, param_name, param_range, title=None, 
 #END Define functions
 
 #Load data
-training_data = pd.read_csv("train.csv")
-test_data = pd.read_csv("test.csv")
+training_data = pd.read_csv("train.csv",index_col=0)
+test_data = pd.read_csv("test.csv",index_col=0)
 #gender_submission = pd.read_csv('gender_submisson.csv')
-
-
 
 #BEGIN Preprocessing
 
-#Select a set of features to train on
+#Select a set of features to train on. Implicitly ignore/remove the remaining ones.
 train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
+drop_features = ['Name','Cabin','Ticket']
 
-#Clean the training and test data
-#Name the datafram train_val to signify that it includes both training and validation data
-X_train_val,y_train_val = preprocess_titanic_data(training_data, features = train_features)
-X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
+#Keep only the train features and survived
+training_data.drop(drop_features,axis=1,inplace=True)
+test_data.drop(drop_features,axis=1,inplace=True)
 
-#Define categorical features
+#Split the target (Survived) from other columns
+#Name the dataframe train_val to signify that it includes both training and validation data
+target_feature_name = ["Survived"]
+X_train_val,y_train_val = split_target_and_rest(training_data,target_feature_name)
+X_test = test_data.copy()
+
+#Replace nans with the mode in categorical feature columns and mean in the rest
+#Define categorical and noncategorical features
 categorical_features = ["Embarked","Sex","Pclass"]
-#X_small = X_train_val[["Embarked","Sex","Pclass"]]
-#X_dummies = pd.get_dummies(X_small,columns=["Embarked","Sex","Pclass"])
-#print(X_dummies)
+noncategorical_features = ["Age","SibSp","Parch","Fare"]
 
+X_train_val = fill_with_mean(X_train_val,noncategorical_features)
+X_train_val = fill_with_mode(X_train_val,categorical_features)
+X_test = fill_with_mean(X_test,noncategorical_features)
+X_test = fill_with_mode(X_test,categorical_features)
+
+
+#Convert categorical features into oneshot labels, that is, a dummy variable for each category
 X_train_val = onehot(X_train_val,categorical_features)
 X_test = onehot(X_test,categorical_features)
-print(X_train_val.head())
+
+
 
 #Add polynomial features
 poly_degree = 1
@@ -271,7 +308,9 @@ X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
 normalise_mode = 'None'
 X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
 
+#END Preprocessing
 
+#BEGIN Inspection
 
 
 ##Explore the cleaned training data
@@ -293,6 +332,7 @@ X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
 ##Plot the top elements
 #print(X_train_val.head(10))
 
+#END Inspection
 
 #TRAINING
 #Set global random seed
