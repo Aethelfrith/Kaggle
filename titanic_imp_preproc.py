@@ -65,12 +65,15 @@ def preprocess_titanic_data(input_data,features,exists_y = True):
 	#Select a subset of features to train on
 	cols_y_keep = ["Survived"]
 	
-	X = input_data[cols_x_keep]
+	#If survival data is included, extract that
+	#Explicitly make X a (deep) copy, to avoid chained indexing warnings
+	X = input_data[cols_x_keep].copy()
 	if exists_y:
 		y = input_data[cols_y_keep]
 
-	#Replace nan values in the embarked column with a random choice of 'C','Q','S'
-	X = fillna_w_rand_subset(X,"Embarked") 
+	#LEGACY: Replace nan values in the embarked column with a random choice of 'C','Q','S'
+	#Replace nan values in the embarked columns with the mode
+	X.loc[:,"Embarked"].fillna(X["Embarked"].mode())
 
 	#Replace the embarked column values with integers, do the same with sex
 	embarked_dict = {'C':0,'Q':1,'S':2}
