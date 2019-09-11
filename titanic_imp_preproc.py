@@ -88,6 +88,14 @@ def preprocess_titanic_data(input_data,features,exists_y = True):
 		return X,y
 	else:
 		return X
+
+def onehot(X,features):
+	X = X.copy()
+	
+	# Make binary variables out of categorical 
+	X = pd.get_dummies(X,columns = features)
+	
+	return X
 		
 def normalise_entire_dataframe(X,mode = 'minmax'):
 	if not isinstance(mode, str):
@@ -221,24 +229,12 @@ def plot_validation_curve(estimator, X, y, param_name, param_range, title=None, 
 
 #END Define functions
 
-#Add a useless comment to try out git
-
 
 training_data = pd.read_csv("train.csv")
 test_data = pd.read_csv("test.csv")
 #gender_submission = pd.read_csv('gender_submisson.csv')
 
-#Explore the uncleaned data
-#print(training_data.head())
-
-#Extract the column names
-#column_names = list(training_data.columns)
-#print("Column names: \n",column_names)
-
-#Count the number of survivors
-#n_survivors = training_data["Survived"].value_counts()
-#print("Survived (1), not survived (0): \n",n_survivors)
-#The sample is not very skewed
+#BEGIN Preprocessing
 
 #Select a set of features to train on
 train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
@@ -246,12 +242,14 @@ train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
 #Clean the training data
 X_train_val,y_train_val = preprocess_titanic_data(training_data, features = train_features)
 
+#Define categorical features
+
 #Clean the test data similarily
 X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Add polynomial features
-poly_degree = 2
-include_bias = False
+poly_degree = 1
+include_bias = True
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
 train_features = X_train_val.columns
