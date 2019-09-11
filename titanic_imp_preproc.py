@@ -58,36 +58,33 @@ def spy(X):
 	plt.show()
 	return None
 
-def preprocess_titanic_data(input_data,features,exists_y = True):
-	input_data = input_data.copy()
-	cols_x_keep = features
-
-	#Select a subset of features to train on
-	cols_y_keep = ["Survived"]
-	
-	#If survival data is included, extract that
-	#Explicitly make X a (deep) copy, to avoid chained indexing warnings
-	X = input_data[cols_x_keep].copy()
-	if exists_y:
-		y = input_data[cols_y_keep]
-
-	#LEGACY: Replace nan values in the embarked column with a random choice of 'C','Q','S'
-	#Replace nan values in the embarked columns with the mode
-	X.loc[:,"Embarked"].fillna(X["Embarked"].mode())
-
-	#Replace the embarked column values with integers, do the same with sex
-#	embarked_dict = {'C':0,'Q':1,'S':2}
-#	X.replace({"Embarked":embarked_dict},inplace = True)
-#	sex_dict = {'male':0,'female':1}
-#	X.replace({'Sex':sex_dict},inplace = True)
-	
-	#Replace NaNs in the Age column with the average
-	X = X.fillna(X.mean())
-	
-	if (exists_y == True):
-		return X,y
+def combine_features_titanic(X,train_feature_names=None):
+	X = X.copy()
+	X['FamSize'] = X['Parch'] + X['SibSp'] + 1
+	X['isAlone'] = 1
+	X.loc[X['FamSize']>1,'isAlone'] = 0
+	if not train_feature_names == None:
+		train_feature_names = train_feature_names.copy()
+		train_feature_names.append('FamSize')
+		train_feature_names.append('isAlone')
+		return X, train_feature_names
 	else:
 		return X
+		
+def extract_and_add_titles(X,name_series,rare_name_thresh = 10):
+	X = X.copy()
+
+	given_names = name_series.str.split(', ',expand=True)[1]
+	titles = given_names.str.split(".", expand=True)[0]
+
+	name_counts = titles.value_counts()
+	rare_names = name_counts.loc[name_counts.values < rare_name_thresh]
+
+	rare_name_indices = [True if name in rare_names else False for name in titles.values]
+	titles.loc[rare_name_indices] = 'Misc'
+	X['Title'] = titles
+
+	return X
 		
 def fill_with_mode(X,features):
 	X = X.copy()
@@ -281,16 +278,15 @@ X_test = test_data.copy()
 categorical_features = ["Embarked","Sex","Pclass"]
 noncategorical_features = ["Age","SibSp","Parch","Fare"]
 
-X_train_val = fill_with_mean(X_train_val,noncategorical_features)
+X_train_val = fill_with_median(X_train_val,noncategorical_features)
 X_train_val = fill_with_mode(X_train_val,categorical_features)
-X_test = fill_with_mean(X_test,noncategorical_features)
+X_test = fill_with_median(X_test,noncategorical_features)
 X_test = fill_with_mode(X_test,categorical_features)
 
 
 #Convert categorical features into oneshot labels, that is, a dummy variable for each category
 X_train_val = onehot(X_train_val,categorical_features)
 X_test = onehot(X_test,categorical_features)
-
 
 
 #Add polynomial features
@@ -311,11 +307,6 @@ X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
 #END Preprocessing
 
 #BEGIN Inspection
-
-
-##Explore the cleaned training data
-##Plot where there are NaN elements
-#spy(X_train_val)
 
 ##Check for linear correlations in the data
 #X_train_val.plot(x='Sex', y='Age', style='o')
