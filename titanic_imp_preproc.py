@@ -76,10 +76,10 @@ def preprocess_titanic_data(input_data,features,exists_y = True):
 	X.loc[:,"Embarked"].fillna(X["Embarked"].mode())
 
 	#Replace the embarked column values with integers, do the same with sex
-	embarked_dict = {'C':0,'Q':1,'S':2}
-	X.replace({"Embarked":embarked_dict},inplace = True)
-	sex_dict = {'male':0,'female':1}
-	X.replace({'Sex':sex_dict},inplace = True)
+#	embarked_dict = {'C':0,'Q':1,'S':2}
+#	X.replace({"Embarked":embarked_dict},inplace = True)
+#	sex_dict = {'male':0,'female':1}
+#	X.replace({'Sex':sex_dict},inplace = True)
 	
 	#Replace NaNs in the Age column with the average
 	X = X.fillna(X.mean())
@@ -229,27 +229,36 @@ def plot_validation_curve(estimator, X, y, param_name, param_range, title=None, 
 
 #END Define functions
 
-
+#Load data
 training_data = pd.read_csv("train.csv")
 test_data = pd.read_csv("test.csv")
 #gender_submission = pd.read_csv('gender_submisson.csv')
+
+
 
 #BEGIN Preprocessing
 
 #Select a set of features to train on
 train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
 
-#Clean the training data
+#Clean the training and test data
+#Name the datafram train_val to signify that it includes both training and validation data
 X_train_val,y_train_val = preprocess_titanic_data(training_data, features = train_features)
+X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
 
 #Define categorical features
+categorical_features = ["Embarked","Sex","Pclass"]
+#X_small = X_train_val[["Embarked","Sex","Pclass"]]
+#X_dummies = pd.get_dummies(X_small,columns=["Embarked","Sex","Pclass"])
+#print(X_dummies)
 
-#Clean the test data similarily
-X_test = preprocess_titanic_data(test_data,features = train_features,exists_y = False)
+X_train_val = onehot(X_train_val,categorical_features)
+X_test = onehot(X_test,categorical_features)
+print(X_train_val.head())
 
 #Add polynomial features
 poly_degree = 1
-include_bias = True
+include_bias = False
 interaction_only = False
 X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
 train_features = X_train_val.columns
