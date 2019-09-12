@@ -58,21 +58,16 @@ def spy(X):
 	plt.show()
 	return None
 
-def combine_features_titanic(X,train_feature_names=None):
+def engineer_famsize_and_isalone(X):
 	X = X.copy()
 	X['FamSize'] = X['Parch'] + X['SibSp'] + 1
 	X['isAlone'] = 1
 	X.loc[X['FamSize']>1,'isAlone'] = 0
-	if not train_feature_names == None:
-		train_feature_names = train_feature_names.copy()
-		train_feature_names.append('FamSize')
-		train_feature_names.append('isAlone')
-		return X, train_feature_names
-	else:
-		return X
+	return X
 		
-def extract_and_add_titles(X,name_series,rare_name_thresh = 10):
+def extract_and_add_titles(X,rare_name_thresh = 10):
 	X = X.copy()
+	name_series = X["Name"]
 
 	given_names = name_series.str.split(', ',expand=True)[1]
 	titles = given_names.str.split(".", expand=True)[0]
@@ -261,7 +256,7 @@ test_data = pd.read_csv("test.csv",index_col=0)
 
 #Select a set of features to train on. Implicitly ignore/remove the remaining ones.
 train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
-drop_features = ['Name','Cabin','Ticket']
+drop_features = ['Cabin','Ticket']
 
 #Keep only the train features and survived
 training_data.drop(drop_features,axis=1,inplace=True)
@@ -273,9 +268,24 @@ target_feature_name = ["Survived"]
 X_train_val,y_train_val = split_target_and_rest(training_data,target_feature_name)
 X_test = test_data.copy()
 
+#Engineer familysize and isAlone features
+X_train_val = engineer_famsize_and_isalone(X_train_val)
+X_test = engineer_famsize_and_isalone(X_test)
+
+#Extract titles from names and remove the names column
+X_train_val = extract_and_add_titles(X_train_val)
+X_train_val.drop(["Name"],axis=1,inplace=True)
+X_test = extract_and_add_titles(X_test)
+X_test.drop(["Name"],axis=1,inplace=True)
+
+
+#Update the train feature list
+train_features = list(X_train_val)
+
+
 #Replace nans with the mode in categorical feature columns and mean in the rest
 #Define categorical and noncategorical features
-categorical_features = ["Embarked","Sex","Pclass"]
+categorical_features = ["Embarked","Sex","Pclass","isAlone","Title"]
 noncategorical_features = ["Age","SibSp","Parch","Fare"]
 
 X_train_val = fill_with_median(X_train_val,noncategorical_features)
@@ -300,9 +310,10 @@ X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
 
 
 #Try normalising the data
-#normalise_mode = 'std'
-normalise_mode = 'None'
+normalise_mode = 'std'
+#normalise_mode = 'None'
 X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
+X_test = normalise_entire_dataframe(X_test, mode = normalise_mode)
 
 #END Preprocessing
 
