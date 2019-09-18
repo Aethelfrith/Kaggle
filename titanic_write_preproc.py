@@ -190,11 +190,13 @@ X_test = normalise_entire_dataframe(X_test, mode = normalise_mode)
 #END Preprocessing
 
 #Write output data to file
+
+y_train_val_df = pd.DataFrame(y_train_val,columns = ['Survived'])
 train_val_filename = 'titanic_trainval.csv'
 target_filename = 'titanic_target.csv'
 test_filename = 'titanic_test.csv'
 
 X_train_val.to_csv(train_val_filename,index=False,encoding='utf-8')
-y_train_val.to_csv(target_filename,index=False,encoding='utf-8')
+y_train_val_df.to_csv(target_filename,index=True,encoding='utf-8')
 X_test.to_csv(test_filename,index=False,encoding='utf-8')
 	
