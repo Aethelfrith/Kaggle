@@ -140,10 +140,6 @@ test_data = test_data.copy()
 #Extract column names
 train_features = trainingval_data.columns.values.tolist()
 
-#Inspect input
-#print("Type is: " + str(type(y_train_val)))
-print(y_train_val.head())
-
 #BEGIN Inspection
 
 ##Check for linear correlations in the data
