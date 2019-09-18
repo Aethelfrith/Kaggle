@@ -170,15 +170,21 @@ X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random
 
 #Run a machine learning algorithm
 #Set parameters
-alpha = 0.0001
-hidden_layer_sizes = (10,)
+#alpha = 0.0001
+#hidden_layer_sizes = (10,)
+#solver = 'lbfgs'
+#activation = 'relu'
+#max_iter = 200
+
+alpha = 0.001
+hidden_layer_sizes = (10,10)
 solver = 'lbfgs'
 activation = 'relu'
 max_iter = 200
+verbose = false
 
 
-
-estimator = MLPClassifier(alpha = alpha, hidden_layer_sizes = hidden_layer_sizes, solver = solver, activation = activation, random_state = random_seed, max_iter = max_iter)
+estimator = MLPClassifier(alpha = alpha, hidden_layer_sizes = hidden_layer_sizes, solver = solver, activation = activation, random_state = random_seed, max_iter = max_iter,verbose = verbose)
 
 estimator.fit(X_train,np.ravel(y_train))
 y_pred_train = estimator.predict(X_val)
@@ -216,8 +222,8 @@ training_curve_title = 'Support vector classifier'
 train_val_split_folds = 5
 train_sizes = np.linspace(0.04,1.0,20)
 
-#plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
-#plt.show()
+plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
+plt.show()
 
 #Plot a cross-validation curve
 #CV_curve_title = 'Support vector classifier'
