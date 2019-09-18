@@ -1,20 +1,11 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
-from sklearn.metrics import classification_report as cr
 from sklearn import preprocessing as pp
-from sklearn.model_selection import learning_curve
-from sklearn.model_selection import validation_curve
+
 
 ####################################
-#Classify which passengers of the Titanic survive and which ones die.
-#Here, a support vector machine is used for classification.
-#This script focusses on improving the preprocessing step of data.
-#Part of the code is inspired by some other Kaggle users.
+#Output a file containing preprocessed titanic training and valiation, and test data.
 
 
 #Define functions
@@ -41,22 +32,6 @@ def get_random_values_from_distr(distr_series, n_rands):
 	elements = distr_series.index
 	prob_values = distr_series.values/sum(distr_series.values)
 	return np.random.choice(elements,n_rands,p = prob_values)
-	
-def spy(X):
-	#Make a plot of all NaN values in a DataFrame X
-	X_values = X.values
-	n_y,n_x = np.shape(X_values)
-
-	nan_loc = np.where(X.isnull().values)
-	nan_loc_x = nan_loc[1]
-	nan_loc_y = nan_loc[0]
-
-	scatter_size = 20
-	plt.scatter(nan_loc_x,nan_loc_y,scatter_size)
-	plt.xlim(0, n_x-1)
-	plt.ylim(0, n_y-1)
-	plt.show()
-	return None
 
 def engineer_famsize_and_isalone(X):
 	X = X.copy()
@@ -140,110 +115,7 @@ def polynomialize_df(df, poly_degree, include_bias, interaction_only = False):
 	df = pd.DataFrame(np_array_poly, columns = [polyfeature_names,])
 	return df
 
-def plot_learning_curve(estimator, X, y, title = None, ylim=None, cv=None,
-                        n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
-    """
-    Generate a simple plot of the test and training learning curve.
 
-    Parameters
-    ----------
-    estimator : object type that implements the "fit" and "predict" methods
-        An object of that type which is cloned for each validation.
-
-    title : string
-        Title for the chart.
-
-    X : array-like, shape (n_samples, n_features)
-        Training vector, where n_samples is the number of samples and
-        n_features is the number of features.
-
-    y : array-like, shape (n_samples) or (n_samples, n_features), optional
-        Target relative to X for classification or regression;
-        None for unsupervised learning.
-
-    ylim : tuple, shape (ymin, ymax), optional
-        Defines minimum and maximum yvalues plotted.
-
-    cv : int, cross-validation generator or an iterable, optional
-        Determines the cross-validation splitting strategy.
-        Possible inputs for cv are:
-          - None, to use the default 3-fold cross-validation,
-          - integer, to specify the number of folds.
-          - :term:`CV splitter`,
-          - An iterable yielding (train, test) splits as arrays of indices.
-
-        For integer/None inputs, if ``y`` is binary or multiclass,
-        :class:`StratifiedKFold` used. If the estimator is not a classifier
-        or if ``y`` is neither binary nor multiclass, :class:`KFold` is used.
-
-        Refer :ref:`User Guide <cross_validation>` for the various
-        cross-validators that can be used here.
-
-    n_jobs : int or None, optional (default=None)
-        Number of jobs to run in parallel.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
-
-    train_sizes : array-like, shape (n_ticks,), dtype float or int
-        Relative or absolute numbers of training examples that will be used to
-        generate the learning curve. If the dtype is float, it is regarded as a
-        fraction of the maximum size of the training set (that is determined
-        by the selected validation method), i.e. it has to be within (0, 1].
-        Otherwise it is interpreted as absolute sizes of the training sets.
-        Note that for classification the number of samples usually have to
-        be big enough to contain at least one sample from each class.
-        (default: np.linspace(0.1, 1.0, 5))
-        
-    Note: From https://scikit-learn.org/stable/auto_examples/model_selection/plot_learning_curve.html#sphx-glr-auto-examples-model-selection-plot-learning-curve-py
-    """
-    plt.figure()
-    plt.title(title)
-    if ylim is not None:
-        plt.ylim(*ylim)
-    plt.xlabel("Training examples")
-    plt.ylabel("Score")
-    train_sizes, train_scores, test_scores = learning_curve(
-        estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
-    train_scores_mean = np.mean(train_scores, axis=1)
-    train_scores_std = np.std(train_scores, axis=1)
-    test_scores_mean = np.mean(test_scores, axis=1)
-    test_scores_std = np.std(test_scores, axis=1)
-    plt.grid()
-
-    plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
-                     train_scores_mean + train_scores_std, alpha=0.1,
-                     color="r")
-    plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
-                     test_scores_mean + test_scores_std, alpha=0.1, color="g")
-    plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
-             label="Training score")
-    plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
-             label="Cross-validation score")
-
-    plt.legend(loc="best")
-    return plt
-
-def plot_validation_curve(estimator, X, y, param_name, param_range, title=None, 		xlabel = 'Parameter', ylabel = 'Score', ylim = None, cv = 5):
-	plt.figure()
-	plt.title(title)
-	if ylim is not None:
-		plt.ylim(*ylim)
-	#NOTE: Strange that cv has to be hardcoded....
-	train_scores, validation_scores = validation_curve(estimator, X, y, param_name, param_range, cv = 5)
-	train_scores_mean = np.mean(train_scores,axis=1)
-	train_scores_std = np.std(train_scores,axis=1)
-	validation_scores_mean = np.mean(validation_scores,axis=1)
-	validation_scores_std = np.std(validation_scores,axis=1)
-	plt.xlabel(xlabel)
-	plt.ylabel(ylabel)
-	line_width = 2
-	plt.semilogx(param_range,train_scores_mean,label = 'Training score', color='darkorange',lw = line_width)
-	plt.fill_between(param_range, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha = 0.1, color='darkorange',lw = line_width)
-	plt.semilogx(param_range,validation_scores_mean,label = 'CV score', color='navy',lw = line_width)
-	plt.fill_between(param_range, validation_scores_mean - validation_scores_std, validation_scores_mean + validation_scores_std, alpha = 0.1, color='navy',lw = line_width)
-	plt.legend(loc='best')
-	return plt
 
 #END Define functions
 
@@ -317,123 +189,12 @@ X_test = normalise_entire_dataframe(X_test, mode = normalise_mode)
 
 #END Preprocessing
 
-#BEGIN Inspection
+#Write output data to file
+train_val_filename = 'titanic_trainval.csv'
+target_filename = 'titanic_target.csv'
+test_filename = 'titanic_test.csv'
 
-##Check for linear correlations in the data
-#X_train_val.plot(x='Sex', y='Age', style='o')
-#X_train_val.plot(x='Age', y='Fare', style='o')
-#plt.show()
-#print(X_train_val.describe())
-
-##Check for correlations
-#X_corr = X_train_val.corr()
-#sns.heatmap(X_corr,annot=True,cmap = plt.cm.Reds)
-#plt.autoscale()
-#plt.show()
-
-##Plot the top elements
-#print(X_train_val.head(10))
-
-#END Inspection
-
-#TRAINING
-#Set global random seed
-random_seed = 1234
-#random_seed = 2017
-#random_seed = 3972153975
-
-#Subset training and validation data
-X_train, X_val, y_train, y_val = train_test_split(X_train_val,y_train_val,random_state = random_seed)
-
-#Run a machine learning algorithm
-kernel_fun = 'linear'
-#kernel_fun = 'rbf'
-
-#Best for rbs kernel, no polynomial features
-#gamma = 0.01
-#reg_param_C = 10
-
-#Best for radial kernel, polynomial features
-#gamma = 0.01
-#reg_param_C = 1
-
-#Best for linear kernel, no polynomial features
-#gamma = 1
-#reg_param_C = 0.1
-
-#Best for linear kernel, polynomial features
-gamma = 1
-reg_param_C = 0.1
-
-
-
-max_iter = 20000
-decision_function_shape = 'ovr'
-estimator = SVC(C = reg_param_C, gamma = gamma, kernel = kernel_fun, decision_function_shape = decision_function_shape, random_state = random_seed, max_iter = max_iter)
-
-estimator.fit(X_train,np.ravel(y_train))
-y_pred_train = estimator.predict(X_val)
-y_pred_train_self = estimator.predict(X_train)
-
-#Inspect the importance of features
-#Make a DataFrame of the feature importances and column names
-importance_df = pd.DataFrame(estimator.coef_, columns = train_features)
-print("Importance of features: ")
-print(importance_df)
-
-#bias_term = estimator.intercept_
-#print("Intercept: \n",bias_term)
-
-#Plot the importances in a bar plot
-#importance_df.plot(kind='bar',figsize = (10,6))
-#plt.legend(ncol=3)
-#plt.show()
-
-
-#Plot a few dimensions of the data
-#plot_column_1 = 'Sex'
-#plot_column_2 = 'Pclass'
-#plot_column_3 = 'SibSp'
-#plot_classes = y_train
-#plt_alpha = 0.2
-#plt.scatter(x=X_train[plot_column_1].values,y=X_train[plot_column_2].values,alpha = plt_alpha, s=100*X_train[plot_column_3].values, c=plot_classes.values, cmap = 'viridis')
-#plt.xlabel(plot_column_1)
-#plt.ylabel(plot_column_2)
-#plt.show()
-
-
-#Plot a training curve
-training_curve_title = 'Support vector classifier'
-train_val_split_folds = 5
-train_sizes = np.linspace(0.04,1.0,20)
-
-#plot_learning_curve(estimator, X_train_val, np.ravel(y_train_val), title = training_curve_title, cv=train_val_split_folds,train_sizes = train_sizes)
-#plt.show()
-
-#Plot a cross-validation curve
-CV_curve_title = 'Support vector classifier'
-CV_param_name = 'C'
-#CV_param_name = 'gamma'
-CV_pararam_range = np.array([0.001,0.01,0.1,1,10,100])
-
-plot_validation_curve(estimator, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
-plt.show()
-
-#VALIDATION
-#Display the error metrics on the training data
-class_names = ['Diseased','Survived']
-class_rep_train = cr(y_train,y_pred_train_self,target_names = class_names)
-print("Performance on training data:")
-print(class_rep_train)
-
-
-
-#Compare the predictions with the real values
-class_rep_val = cr(y_val,y_pred_train,target_names = class_names)
-print("Performance on validation data:")
-print(class_rep_val)
-
-#Generate predictions from the test set
-#y_pred_test = estimator.predict(X_test)
-
+X_train_val.to_csv(train_val_filename,index=False,encoding='utf-8')
+y_train_val.to_csv(target_filename,index=False,encoding='utf-8')
+X_test.to_csv(test_filename,index=False,encoding='utf-8')
 	
