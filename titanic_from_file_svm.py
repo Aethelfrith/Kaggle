@@ -247,75 +247,19 @@ def plot_validation_curve(estimator, X, y, param_name, param_range, title=None, 
 
 #END Define functions
 
-#Load data
-training_data = pd.read_csv("train.csv",index_col=0)
-test_data = pd.read_csv("test.csv",index_col=0)
-#gender_submission = pd.read_csv('gender_submisson.csv')
+#Load preprocessed data
+trainingval_data = pd.read_csv("titanic_trainval.csv",index_col=0)
+target_data = pd.read_csv("titanic_target.csv",index_col=0)
+test_data = pd.read_csv("titanic_test.csv",index_col=0)
 
-#BEGIN Preprocessing
+#Rename and deep copy
+X_train_val = trainingval_data.copy()
+y_train_val = target_data.copy()
+test_data = test_data.copy()
 
-#Select a set of features to train on. Implicitly ignore/remove the remaining ones.
-train_features = ["Pclass","Sex","Age","SibSp","Parch","Fare","Embarked"]
-drop_features = ['Cabin','Ticket']
+#Inspect input
+print(y_train_val.head())
 
-#Keep only the train features and survived
-training_data.drop(drop_features,axis=1,inplace=True)
-test_data.drop(drop_features,axis=1,inplace=True)
-
-#Split the target (Survived) from other columns
-#Name the dataframe train_val to signify that it includes both training and validation data
-target_feature_name = ["Survived"]
-X_train_val,y_train_val = split_target_and_rest(training_data,target_feature_name)
-X_test = test_data.copy()
-
-#Engineer familysize and isAlone features
-X_train_val = engineer_famsize_and_isalone(X_train_val)
-X_test = engineer_famsize_and_isalone(X_test)
-
-#Extract titles from names and remove the names column
-X_train_val = extract_and_add_titles(X_train_val)
-X_train_val.drop(["Name"],axis=1,inplace=True)
-X_test = extract_and_add_titles(X_test)
-X_test.drop(["Name"],axis=1,inplace=True)
-
-
-#Update the train feature list
-train_features = list(X_train_val)
-
-
-#Replace nans with the mode in categorical feature columns and mean in the rest
-#Define categorical and noncategorical features
-categorical_features = ["Embarked","Sex","Pclass","isAlone","Title"]
-noncategorical_features = ["Age","SibSp","Parch","Fare"]
-
-X_train_val = fill_with_median(X_train_val,noncategorical_features)
-X_train_val = fill_with_mode(X_train_val,categorical_features)
-X_test = fill_with_median(X_test,noncategorical_features)
-X_test = fill_with_mode(X_test,categorical_features)
-
-
-#Convert categorical features into oneshot labels, that is, a dummy variable for each category
-X_train_val = onehot(X_train_val,categorical_features)
-X_test = onehot(X_test,categorical_features)
-
-
-#Add polynomial features
-poly_degree = 1
-include_bias = False
-interaction_only = False
-X_train_val = polynomialize_df(X_train_val, poly_degree, include_bias, interaction_only)
-train_features = X_train_val.columns
-
-X_test = polynomialize_df(X_test, poly_degree, include_bias, interaction_only)
-
-
-#Try normalising the data
-normalise_mode = 'std'
-#normalise_mode = 'None'
-X_train_val = normalise_entire_dataframe(X_train_val, mode = normalise_mode)
-X_test = normalise_entire_dataframe(X_test, mode = normalise_mode)
-
-#END Preprocessing
 
 #BEGIN Inspection
 
