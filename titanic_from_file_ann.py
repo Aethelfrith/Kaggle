@@ -135,7 +135,7 @@ test_data = pd.read_csv("titanic_test.csv",index_col=0)
 #Rename and deep copy
 X_train_val = trainingval_data.copy()
 y_train_val = target_data.copy()
-test_data = test_data.copy()
+X_test = test_data.copy()
 
 #Extract column names
 train_features = trainingval_data.columns.values.tolist()
@@ -252,7 +252,7 @@ print(class_rep_val)
 y_pred_test = estimator.predict(X_test)
 
 #Write the predictions to file
-temp = test_data.loc[:,['PassengerId']]
+temp = pd.DataFrame(np.arange(892,892+len(y_pred_test)),columns=['PassengerID'])
 temp['Survived'] = y_pred_test
 temp.to_csv("./submission.csv",header=True,index=False)
 	
