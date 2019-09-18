@@ -257,9 +257,12 @@ X_train_val = trainingval_data.copy()
 y_train_val = target_data.copy()
 test_data = test_data.copy()
 
-#Inspect input
-print(y_train_val.head())
+#Extract column names
+train_features = trainingval_data.columns.values.tolist()
 
+#Inspect input
+#print("Type is: " + str(type(y_train_val)))
+print(y_train_val.head())
 
 #BEGIN Inspection
 
@@ -360,8 +363,8 @@ CV_param_name = 'C'
 #CV_param_name = 'gamma'
 CV_pararam_range = np.array([0.001,0.01,0.1,1,10,100])
 
-plot_validation_curve(estimator, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
-plt.show()
+#plot_validation_curve(estimator, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
+#plt.show()
 
 #VALIDATION
 #Display the error metrics on the training data
