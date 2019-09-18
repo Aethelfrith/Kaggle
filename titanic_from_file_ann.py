@@ -231,8 +231,8 @@ CV_curve_title = 'MLP classifier'
 CV_param_name = 'alpha'
 CV_pararam_range = np.array([0.001,0.01,0.1,1,10,100])
 
-plot_validation_curve(estimator, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
-plt.show()
+#plot_validation_curve(estimator, X_train_val, np.ravel(y_train_val), CV_param_name, CV_pararam_range, title = CV_curve_title, xlabel = 'Parameter', ylabel = 'Score')
+#plt.show()
 
 #VALIDATION
 #Display the error metrics on the training data
@@ -249,6 +249,10 @@ print("Performance on validation data:")
 print(class_rep_val)
 
 #Generate predictions from the test set
-#y_pred_test = estimator.predict(X_test)
+y_pred_test = estimator.predict(X_test)
 
+#Write the predictions to file
+temp = test_data.loc[:,['PassengerId']]
+temp['Survived'] = y_pred_test
+temp.to_csv("./submission.csv",header=True,index=False)
 	
